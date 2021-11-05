@@ -28,6 +28,10 @@ services:
     consumer:      
       image: consumer
       build: ./consumer
+      ports:
+        - 8888:8888
+      expose: 
+        - "8888"
       depends_on:
         kafka:
           condition: service_healthy
