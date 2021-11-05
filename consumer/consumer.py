@@ -8,27 +8,6 @@ def main():
     spark = SparkSession.builder.master('local').getOrCreate()
     spark.sparkContext.setLogLevel('ERROR')
 
-    """
-    consumer = KafkaConsumer(
-    'prices',
-    bootstrap_servers='kafka:9092',
-    group_id='group1',
-    auto_offset_reset='earliest',
-    consumer_timeout_ms=10000,  # If no messages recived after 10s break the iterator
-    value_deserializer=lambda x: json.loads(x.decode('utf-8'))
-    )
-    batch = []
-    for msg in consumer:
-        batch.append(msg.value)
-        print(msg.value)
-
-    # Create Spark DF
-    data = (tuple(i.values()) for i in batch)
-    cols = list(batch[0].keys())
-    df = spark.createDataFrame(data=data, schema=cols)
-    df.show()
-    """
-
     schema = StructType([
         StructField('ts', StringType(), True),
         StructField('symbol', StringType(), True),
@@ -61,7 +40,8 @@ def main():
     # Filter by 3*price std and show dataframe
     upper_bound = stats['mean'] + 3*stats['stddev']
     lower_bound = stats['mean'] - 3*stats['stddev']
-    df.filter((df.price > upper_bound) | (df.price < lower_bound)).show()
+    df.filter((df.price > upper_bound) | (
+        df.price < lower_bound)).show(truncate=False)
 
 
 if __name__ == "__main__":
