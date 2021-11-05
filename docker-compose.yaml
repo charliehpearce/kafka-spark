@@ -1,0 +1,35 @@
+version: '2.1'
+services:
+    kafka:
+      image: spotify/kafka
+      hostname: kafka
+      environment:
+        ADVERTISED_HOST: kafka
+        ADVERTISED_PORT: 9092
+        AUTO_CREATE_TOPICS: "true"
+      command: >
+          bash -c
+          "(sleep 15s &&
+          /opt/kafka_2.11-0.10.1.0/bin/kafka-topics.sh
+          --create
+          --zookeeper
+          localhost:2181 --replication-factor 1 --partitions 1 --topic prices &) && (supervisord -n)"
+      healthcheck:
+        test: ['CMD-SHELL', '/opt/kafka_2.11-0.10.1.0/bin/kafka-topics.sh --zookeeper localhost:2181 --list']
+        interval: 20s
+        timeout: 5s
+        retries: 3
+    producer:      
+      image: producer
+      build: ./producer
+      depends_on:
+        kafka:
+          condition: service_healthy
+    consumer:      
+      image: consumer
+      build: ./consumer
+      depends_on:
+        kafka:
+          condition: service_healthy
+        producer:
+          condition: service_started
