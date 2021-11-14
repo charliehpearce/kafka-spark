@@ -34,8 +34,8 @@ def main():
     df_summary.show()
 
     # Summary table into dictionary
-    stats = dict(
-        map(lambda row: (row.summary, float(row.price)), df_summary.collect()))
+    stats = dict([(row.summary, float(row.price))
+                 for row in df_summary.collect()])
 
     # Filter by 3*price std and show dataframe
     upper_bound = stats['mean'] + 3*stats['stddev']
